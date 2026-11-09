@@ -1,6 +1,7 @@
 <?php
+// daftar pengajuan berstatus pending buat petugas, ada tombol setujui / tolak
 session_start();
-// HANYA PETUGAS yang boleh akses
+// hanya petugas
 if(!isset($_SESSION['role']) || $_SESSION['role'] != 'petugas') {
     header('location: ../login.php');
     exit;
@@ -16,6 +17,7 @@ include '../config/connection.php';
     <link rel="stylesheet" href="../assets/css/tampil.css">
 </head>
 <body>
+<!-- topbar -->
 <header class="topbar">
     <a href="../index.php" class="brand">Peminjaman Alat</a>
     <div class="user">
@@ -45,6 +47,7 @@ include '../config/connection.php';
         <tbody>
             <?php
             $no = 1;
+            // pengajuan pending + nama peminjam & alat (JOIN)
             $data = $conn->query("SELECT p.*, u.username, a.nama AS alat 
                                   FROM peminjaman p 
                                   JOIN users u ON p.peminjam_id = u.id 
@@ -57,14 +60,17 @@ include '../config/connection.php';
                 <td><?= $no++ ?></td>
                 <td><?= $r['username'] ?></td>
                 <td><?= $r['alat'] ?></td>
+                <!-- tanggal tampil dd/mm/yyyy -->
                 <td><?= date('d/m/Y', strtotime($r['tgl_pinjam'])) ?></td>
                 <td><?= date('d/m/Y', strtotime($r['tgl_jatuh_tempo'])) ?></td>
                 <td class="aksi">
+                    <!-- id + aksi dikirim lewat URL, ada confirm dulu -->
                     <a href="proses_approve.php?id=<?= $r['id'] ?>&aksi=setujui" class="btn btn-primary btn-sm" onclick="return confirm('Setujui peminjaman ini?')">Setujui</a>
                     <a href="proses_approve.php?id=<?= $r['id'] ?>&aksi=tolak" class="btn btn-danger btn-sm" onclick="return confirm('Tolak peminjaman ini?')">Tolak</a>
                 </td>
             </tr>
             <?php endwhile; ?>
+            <!-- belum ada data -->
             <?php if($no == 1): ?>
             <tr><td colspan="6" class="kosong">Tidak ada pengajuan yang menunggu persetujuan.</td></tr>
             <?php endif; ?>

@@ -1,5 +1,7 @@
 <?php
+// log aktivitas (admin). sebagian dicatat otomatis trigger db, sebagian dari proses_terima.php
 session_start();
+// hanya admin, role lain dilempar ke login
 if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     header('location: ../login.php');
     exit;
@@ -15,6 +17,7 @@ include '../config/connection.php';
     <link rel="stylesheet" href="../assets/css/tampil.css">
 </head>
 <body>
+<!-- topbar -->
 <header class="topbar">
     <a href="../index.php" class="brand">Peminjaman Alat</a>
     <div class="user">
@@ -42,6 +45,7 @@ include '../config/connection.php';
         <tbody>
             <?php
             $no = 1;
+            // LEFT JOIN: log tetap muncul walau user-nya sudah dihapus
             $data = $conn->query("SELECT log.*, users.username 
                                   FROM log_aktifitas log 
                                   LEFT JOIN users ON log.user_id = users.id 
@@ -55,6 +59,7 @@ include '../config/connection.php';
                 <td><?= date('d/m/Y H:i', strtotime($r['waktu'])) ?></td>
             </tr>
             <?php endwhile; ?>
+            <!-- belum ada data -->
             <?php if($no == 1): ?>
             <tr><td colspan="4" class="kosong">Belum ada aktivitas.</td></tr>
             <?php endif; ?>

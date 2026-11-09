@@ -1,13 +1,16 @@
 <?php
+// halaman peminjam: alat yang sedang dipinjam (status disetujui) + tombol Kembalikan
 session_start();
+// hanya peminjam, role lain dilempar ke login
 if(!isset($_SESSION['role']) || $_SESSION['role'] != 'peminjam') {
     header('location: ../login.php');
     exit;
 }
 include '../config/connection.php';
+// id user yang login
 $user_id = (int) $_SESSION['id'];
 
-// Tampilkan peminjaman milik user ini yang statusnya 'disetujui' (alat masih di tangan peminjam)
+// punya user ini yang masih 'disetujui' (alat masih di tangannya)
 $stmt = $conn->prepare("SELECT p.*, a.nama AS alat 
                         FROM peminjaman p 
                         JOIN alat a ON p.alat_id = a.id 
@@ -26,6 +29,7 @@ $data = $stmt->get_result();
     <link rel="stylesheet" href="../assets/css/tampil.css">
 </head>
 <body>
+<!-- topbar -->
 <header class="topbar">
     <a href="../index.php" class="brand">Peminjaman Alat</a>
     <div class="user">
@@ -41,10 +45,12 @@ $data = $stmt->get_result();
         <h1>Kembalikan alat</h1>
     </div>
 
+    <!-- notif sukses (dari ?status=success) -->
     <?php if(isset($_GET['status']) && $_GET['status'] == 'success'): ?>
         <p class="notice notice-ok" role="status">Pengembalian sudah diajukan. Serahkan alatnya ke petugas, status akan berubah setelah petugas mengonfirmasi alat sudah diterima.</p>
     <?php endif; ?>
 
+    <!-- tabel cuma tampil kalau ada data -->
     <?php if($data->num_rows > 0): ?>
         <table>
             <thead>
@@ -64,9 +70,11 @@ $data = $stmt->get_result();
                 <tr>
                     <td><?= $no++ ?></td>
                     <td><?= $r['alat'] ?></td>
+                    <!-- tanggal tampil dd/mm/yyyy -->
                     <td><?= date('d/m/Y', strtotime($r['tgl_pinjam'])) ?></td>
                     <td><?= date('d/m/Y', strtotime($r['tgl_jatuh_tempo'])) ?></td>
                     <td class="aksi">
+                        <!-- id peminjaman dikirim lewat URL -->
                         <a href="proses_kembalikan.php?id=<?= $r['id'] ?>"
                            class="btn btn-primary btn-sm"
                            onclick="return confirm('Ajukan pengembalian alat ini? Pastikan alat sudah kamu serahkan ke petugas.')">Kembalikan</a>
@@ -75,6 +83,7 @@ $data = $stmt->get_result();
                 <?php endwhile; ?>
             </tbody>
         </table>
+    <!-- belum ada data -->
     <?php else: ?>
         <p class="empty">Belum ada alat yang sedang dipinjam.</p>
     <?php endif; ?>

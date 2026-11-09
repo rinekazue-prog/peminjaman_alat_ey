@@ -1,5 +1,7 @@
 <?php 
+// form daftar akun (publik). akun baru otomatis jadi peminjam
 session_start(); 
+// sudah login, tidak perlu lihat halaman ini lagi
 if(isset($_SESSION['role'])) { 
     header('location: index.php'); 
     exit;
@@ -18,10 +20,12 @@ if(isset($_SESSION['role'])) {
     <span class="brand">Peminjaman Alat</span>
     <h1>Daftar</h1>
 
+    <!-- flash error: tampil sekali, langsung di-unset -->
     <?php if(isset($_SESSION['error'])): ?>
         <p class="notice notice-error" role="alert"><?= $_SESSION['error']; unset($_SESSION['error']); ?></p>
     <?php endif; ?>
 
+    <!-- submit ke proses_register.php -->
     <form action="proses_register.php" method="POST">
         <label for="username">Username</label>
         <input type="text" id="username" name="username" minlength="3" autofocus required>

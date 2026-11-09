@@ -1,5 +1,7 @@
 <?php
+// form tambah kategori (admin)
 session_start();
+// hanya admin, role lain dilempar ke login
 if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') { header('location: ../login.php'); exit; }
 ?>
 <!DOCTYPE html>
@@ -11,6 +13,7 @@ if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') { header('location
     <link rel="stylesheet" href="../assets/css/tampil.css">
 </head>
 <body>
+<!-- topbar -->
 <header class="topbar">
     <a href="../index.php" class="brand">Peminjaman Alat</a>
     <div class="user">
@@ -24,6 +27,7 @@ if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') { header('location
         <h1>Tambah kategori</h1>
     </div>
 
+    <!-- submit ke proses_tambah.php -->
     <form action="proses_tambah.php" method="POST">
         <label for="nama">Nama kategori</label>
         <input type="text" id="nama" name="nama" required>

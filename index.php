@@ -1,13 +1,18 @@
 <?php
+// beranda: menu yang tampil beda tiap role (admin / petugas / peminjam)
+// session = tempat status login disimpan (id, username, role)
 session_start();
 
+// wajib login
 if(!isset($_SESSION['role'])) {
     header('location: login.php');
     exit;
 }
 
+// role menentukan menu yang tampil
 $role = $_SESSION['role'];
 
+// nama role versi tampilan
 $nama_role = [
     'admin'    => 'Administrator',
     'petugas'  => 'Petugas',
@@ -23,6 +28,7 @@ $nama_role = [
     <link rel="stylesheet" href="assets/css/tampil.css">
 </head>
 <body>
+<!-- topbar -->
 <header class="topbar">
     <a href="index.php" class="brand">Peminjaman Alat</a>
     <div class="user">
@@ -35,7 +41,9 @@ $nama_role = [
     <h1 class="greeting">Aku, <?= $_SESSION['username'] ?></h1>
     <p class="sub">Masuk sebagai <?= $nama_role[$role] ?? 'Peminjam' ?></p>
 
+    <!-- isi menu ditentukan role -->
     <div class="menu-grid">
+    <!-- admin -->
     <?php if($role == 'admin'): ?>
 
         <section class="menu">
@@ -62,6 +70,7 @@ $nama_role = [
             </ul>
         </section>
 
+    <!-- petugas -->
     <?php elseif($role == 'petugas'): ?>
 
         <section class="menu">
@@ -81,6 +90,7 @@ $nama_role = [
             </ul>
         </section>
 
+    <!-- peminjam -->
     <?php else: ?>
 
         <section class="menu">

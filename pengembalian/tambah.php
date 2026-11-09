@@ -1,12 +1,14 @@
 <?php
+// form catat pengembalian manual (admin). pilih peminjaman yang belum selesai
 session_start();
+// hanya admin, role lain dilempar ke login
 if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     header('location: ../login.php');
     exit;
 }
 include '../config/connection.php';
 
-// Ambil peminjaman yang belum selesai dikembalikan (masih dipinjam / sudah diajukan tapi belum dikonfirmasi petugas)
+// peminjaman yang belum selesai: masih dipinjam, atau sudah diajukan tapi belum dikonfirmasi
 $pjm = $conn->query("SELECT p.id, u.username, a.nama AS alat, p.tgl_pinjam, p.tgl_jatuh_tempo 
                      FROM peminjaman p 
                      JOIN users u ON p.peminjam_id = u.id 
@@ -22,6 +24,7 @@ $pjm = $conn->query("SELECT p.id, u.username, a.nama AS alat, p.tgl_pinjam, p.tg
     <link rel="stylesheet" href="../assets/css/tampil.css">
 </head>
 <body>
+<!-- topbar -->
 <header class="topbar">
     <a href="../index.php" class="brand">Peminjaman Alat</a>
     <div class="user">
@@ -35,10 +38,12 @@ $pjm = $conn->query("SELECT p.id, u.username, a.nama AS alat, p.tgl_pinjam, p.tg
         <h1>Catat pengembalian</h1>
     </div>
 
+    <!-- submit ke proses_tambah.php -->
     <form action="proses_tambah.php" method="POST">
         <label for="peminjaman_id">Peminjaman</label>
         <select id="peminjaman_id" name="peminjaman_id" required>
             <option value="">Pilih peminjaman</option>
+            <!-- opsi dari db -->
             <?php while($p = $pjm->fetch_assoc()): ?>
                 <option value="<?= $p['id'] ?>"><?= $p['username'] ?> - <?= $p['alat'] ?> (jatuh tempo <?= date('d/m/Y', strtotime($p['tgl_jatuh_tempo'])) ?>)</option>
             <?php endwhile; ?>

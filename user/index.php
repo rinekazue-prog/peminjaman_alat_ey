@@ -1,5 +1,7 @@
 <?php
+// daftar semua akun beserta rolenya (admin)
 session_start();
+// hanya admin, role lain dilempar ke login
 if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     header('location: ../login.php');
     exit;
@@ -15,6 +17,7 @@ include '../config/connection.php';
     <link rel="stylesheet" href="../assets/css/tampil.css">
 </head>
 <body>
+<!-- topbar -->
 <header class="topbar">
     <a href="../index.php" class="brand">Peminjaman Alat</a>
     <div class="user">
@@ -31,6 +34,7 @@ include '../config/connection.php';
         <a href="tambah.php" class="btn btn-primary">Tambah user</a>
     </div>
 
+    <!-- flash error: tampil sekali, langsung di-unset -->
     <?php if(isset($_SESSION['error'])): ?>
         <p class="notice notice-error" role="alert"><?= $_SESSION['error']; unset($_SESSION['error']); ?></p>
     <?php endif; ?>
@@ -54,12 +58,14 @@ include '../config/connection.php';
                 <td><?= $no++ ?></td>
                 <td><?= $r['username'] ?></td>
                 <td><?= ucfirst($r['role']) ?></td>
+                <!-- confirm() supaya tidak kepencet hapus -->
                 <td class="aksi">
                     <a href="edit.php?id=<?= $r['id'] ?>">Edit</a>
                     <a href="hapus.php?id=<?= $r['id'] ?>" class="hapus" onclick="return confirm('Hapus user ini?')">Hapus</a>
                 </td>
             </tr>
             <?php endwhile; ?>
+            <!-- belum ada data -->
             <?php if($no == 1): ?>
             <tr><td colspan="4" class="kosong">Belum ada user.</td></tr>
             <?php endif; ?>

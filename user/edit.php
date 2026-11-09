@@ -1,16 +1,21 @@
 <?php
+// form edit user. kolom password boleh kosong = password tidak diganti
 session_start();
+// hanya admin, role lain dilempar ke login
 if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     header('location: ../login.php');
     exit;
 }
 include '../config/connection.php';
+// id dari URL, di-cast int biar aman
 $id = (int) ($_GET['id'] ?? 0);
+// data lama buat mengisi form
 $stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->bind_param('i', $id);
 $stmt->execute();
 $r = $stmt->get_result()->fetch_assoc();
 
+// id tidak ada di db, balik ke daftar
 if(!$r) {
     header('location: index.php');
     exit;
@@ -25,6 +30,7 @@ if(!$r) {
     <link rel="stylesheet" href="../assets/css/tampil.css">
 </head>
 <body>
+<!-- topbar -->
 <header class="topbar">
     <a href="../index.php" class="brand">Peminjaman Alat</a>
     <div class="user">
@@ -38,7 +44,9 @@ if(!$r) {
         <h1>Edit user</h1>
     </div>
 
+    <!-- submit ke proses_edit.php -->
     <form action="proses_edit.php" method="POST">
+        <!-- hidden input: penanda baris mana yang diedit -->
         <input type="hidden" name="id" value="<?= $r['id'] ?>">
 
         <label for="username">Username</label>
@@ -50,6 +58,7 @@ if(!$r) {
 
         <label for="role">Role</label>
         <select id="role" name="role" required>
+            <!-- opsi yang sama dengan data lama dipilih otomatis -->
             <option value="admin" <?= $r['role']=='admin'?'selected':'' ?>>Admin</option>
             <option value="petugas" <?= $r['role']=='petugas'?'selected':'' ?>>Petugas</option>
             <option value="peminjam" <?= $r['role']=='peminjam'?'selected':'' ?>>Peminjam</option>

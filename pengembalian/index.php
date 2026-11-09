@@ -1,5 +1,7 @@
 <?php
+// data pengembalian untuk admin, bisa diedit/dihapus manual
 session_start();
+// hanya admin, role lain dilempar ke login
 if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     header('location: ../login.php');
     exit;
@@ -15,6 +17,7 @@ include '../config/connection.php';
     <link rel="stylesheet" href="../assets/css/tampil.css">
 </head>
 <body>
+<!-- topbar -->
 <header class="topbar">
     <a href="../index.php" class="brand">Peminjaman Alat</a>
     <div class="user">
@@ -50,14 +53,18 @@ include '../config/connection.php';
             <tr>
                 <td><?= $no++ ?></td>
                 <td><?= $r['peminjaman_id'] ?></td>
+                <!-- tanggal tampil dd/mm/yyyy -->
                 <td><?= date('d/m/Y', strtotime($r['tgl_kembali'])) ?></td>
+                <!-- format rupiah, strip kalau tidak ada denda -->
                 <td class="num"><?= $r['denda'] > 0 ? 'Rp ' . number_format($r['denda'], 0, ',', '.') : '-' ?></td>
+                <!-- confirm() supaya tidak kepencet hapus -->
                 <td class="aksi">
                     <a href="edit.php?id=<?= $r['id'] ?>">Edit</a>
                     <a href="hapus.php?id=<?= $r['id'] ?>" class="hapus" onclick="return confirm('Hapus data pengembalian ini?')">Hapus</a>
                 </td>
             </tr>
             <?php endwhile; ?>
+            <!-- belum ada data -->
             <?php if($no == 1): ?>
             <tr><td colspan="5" class="kosong">Belum ada pengembalian.</td></tr>
             <?php endif; ?>

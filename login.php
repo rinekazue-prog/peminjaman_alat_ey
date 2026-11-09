@@ -1,5 +1,7 @@
 <?php 
+// form login. yang sudah login langsung dilempar ke beranda
 session_start(); 
+// sudah login, tidak perlu lihat halaman ini lagi
 if(isset($_SESSION['role'])) { 
     header('location: index.php'); 
     exit;
@@ -18,14 +20,17 @@ if(isset($_SESSION['role'])) {
     <span class="brand">Peminjaman Alat</span>
     <h1>Masuk</h1>
 
+    <!-- flash sukses: tampil sekali, langsung di-unset -->
     <?php if(isset($_SESSION['sukses'])): ?>
         <p class="notice notice-ok" role="status"><?= $_SESSION['sukses']; unset($_SESSION['sukses']); ?></p>
     <?php endif; ?>
 
+    <!-- flash error: tampil sekali, langsung di-unset -->
     <?php if(isset($_SESSION['error'])): ?>
         <p class="notice notice-error" role="alert"><?= $_SESSION['error']; unset($_SESSION['error']); ?></p>
     <?php endif; ?>
 
+    <!-- submit ke proses_login.php -->
     <form action="proses_login.php" method="POST">
         <label for="username">Username</label>
         <input type="text" id="username" name="username" autofocus required>

@@ -1,17 +1,21 @@
 <?php
+// form koreksi manual status & denda (admin)
 session_start();
-// HANYA ADMIN yang boleh edit
+// hanya admin
 if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     header('location: ../login.php');
     exit;
 }
 include '../config/connection.php';
+// id dari URL, di-cast int biar aman
 $id = (int) ($_GET['id'] ?? 0);
+// data lama buat mengisi form
 $stmt = $conn->prepare("SELECT * FROM peminjaman WHERE id = ?");
 $stmt->bind_param('i', $id);
 $stmt->execute();
 $r = $stmt->get_result()->fetch_assoc();
 
+// id tidak ada di db, balik ke daftar
 if(!$r) {
     header('location: index.php');
     exit;
@@ -26,6 +30,7 @@ if(!$r) {
     <link rel="stylesheet" href="../assets/css/tampil.css">
 </head>
 <body>
+<!-- topbar -->
 <header class="topbar">
     <a href="../index.php" class="brand">Peminjaman Alat</a>
     <div class="user">
@@ -39,11 +44,14 @@ if(!$r) {
         <h1>Edit peminjaman</h1>
     </div>
 
+    <!-- submit ke proses_edit.php -->
     <form action="proses_edit.php" method="POST">
+        <!-- hidden input: penanda baris mana yang diedit -->
         <input type="hidden" name="id" value="<?= $r['id'] ?>">
 
         <label for="status">Status</label>
         <select id="status" name="status" required>
+            <!-- opsi yang sama dengan data lama dipilih otomatis -->
             <option value="pending" <?= $r['status']=='pending'?'selected':'' ?>>Pending</option>
             <option value="disetujui" <?= $r['status']=='disetujui'?'selected':'' ?>>Disetujui</option>
             <option value="menunggu_konfirmasi" <?= $r['status']=='menunggu_konfirmasi'?'selected':'' ?>>Menunggu konfirmasi petugas</option>

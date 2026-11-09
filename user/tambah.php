@@ -1,5 +1,7 @@
 <?php
+// form tambah user. beda dengan register, di sini admin bebas pilih role
 session_start();
+// hanya admin, role lain dilempar ke login
 if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     header('location: ../login.php');
     exit;
@@ -14,6 +16,7 @@ if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     <link rel="stylesheet" href="../assets/css/tampil.css">
 </head>
 <body>
+<!-- topbar -->
 <header class="topbar">
     <a href="../index.php" class="brand">Peminjaman Alat</a>
     <div class="user">
@@ -27,6 +30,7 @@ if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
         <h1>Tambah user</h1>
     </div>
 
+    <!-- submit ke proses_tambah.php -->
     <form action="proses_tambah.php" method="POST">
         <label for="username">Username</label>
         <input type="text" id="username" name="username" required>

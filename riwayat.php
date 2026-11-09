@@ -1,13 +1,16 @@
 <?php
+// riwayat peminjaman milik peminjam yang login, lengkap dengan tgl kembali dan denda
 session_start();
+// hanya peminjam, role lain dilempar ke login
 if(!isset($_SESSION['role']) || $_SESSION['role'] != 'peminjam') {
     header('location: login.php');
     exit;
 }
 include 'config/connection.php';
+// id user yang login
 $user_id = (int) $_SESSION['id'];
 
-// Riwayat lengkap: semua peminjaman milik user ini + tgl kembali (kalau sudah dikembalikan)
+// semua peminjaman user ini. LEFT JOIN pengembalian supaya yang belum kembali tetap muncul
 $stmt = $conn->prepare("SELECT p.*, a.nama AS alat, pg.tgl_kembali, pg.denda AS denda_kembali
                         FROM peminjaman p
                         JOIN alat a ON p.alat_id = a.id
@@ -18,6 +21,7 @@ $stmt->bind_param('i', $user_id);
 $stmt->execute();
 $data = $stmt->get_result();
 
+// label status (di db namanya pakai underscore)
 $label_status = [
     'pending'              => 'Pending',
     'disetujui'            => 'Disetujui',
@@ -35,6 +39,7 @@ $label_status = [
     <link rel="stylesheet" href="assets/css/tampil.css">
 </head>
 <body>
+<!-- topbar -->
 <header class="topbar">
     <a href="index.php" class="brand">Peminjaman Alat</a>
     <div class="user">
@@ -70,13 +75,17 @@ $label_status = [
             <tr>
                 <td><?= $no++ ?></td>
                 <td><?= $r['alat'] ?></td>
+                <!-- tanggal tampil dd/mm/yyyy -->
                 <td><?= date('d/m/Y', strtotime($r['tgl_pinjam'])) ?></td>
                 <td><?= date('d/m/Y', strtotime($r['tgl_jatuh_tempo'])) ?></td>
                 <td><?= $r['tgl_kembali'] ? date('d/m/Y', strtotime($r['tgl_kembali'])) : '-' ?></td>
+                <!-- warna badge ikut nama status (lihat tampil.css) -->
                 <td><span class="badge <?= $r['status'] ?>"><?= $label_status[$r['status']] ?? ucfirst($r['status']) ?></span></td>
+                <!-- format rupiah, strip kalau tidak ada denda -->
                 <td class="num"><?= $r['denda'] > 0 ? 'Rp ' . number_format($r['denda'], 0, ',', '.') : '-' ?></td>
             </tr>
             <?php endwhile; ?>
+            <!-- belum ada data -->
             <?php if($no == 1): ?>
             <tr><td colspan="7" class="kosong">Belum ada riwayat peminjaman.</td></tr>
             <?php endif; ?>
