@@ -21,7 +21,7 @@ $pjm = $conn->query("SELECT p.id, u.username, a.nama AS alat, p.tgl_pinjam, p.tg
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catat pengembalian | Peminjaman Alat</title>
-    <link rel="stylesheet" href="../assets/css/tampil.css">
+    <link rel="stylesheet" href="../assets/css/tampil.css?v=2">
 </head>
 <body>
 <!-- topbar -->

@@ -13,7 +13,7 @@ if(isset($_SESSION['role'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Masuk | Peminjaman Alat</title>
-    <link rel="stylesheet" href="assets/css/tampil.css">
+    <link rel="stylesheet" href="assets/css/tampil.css?v=2">
 </head>
 <body class="auth">
 <main class="auth-box">

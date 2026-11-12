@@ -1,14 +1,13 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.0.1
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: sql305.infinityfree.com
--- Waktu pembuatan: 09 Nov 2026 pada 09.39
--- Versi server: 11.4.13-MariaDB
--- Versi PHP: 7.2.22
+-- Host: 127.0.0.1
+-- Waktu pembuatan: 29 Okt 2026 pada 08.39
+-- Versi server: 10.4.32-MariaDB
+-- Versi PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -19,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `if0_43208907_peminjaman`
+-- Database: `alfinrano_xiirpl_paket1`
 --
 
 -- --------------------------------------------------------
@@ -40,29 +39,16 @@ CREATE TABLE `alat` (
 --
 
 INSERT INTO `alat` (`id`, `nama`, `kategori_id`, `stok`) VALUES
-(12, 'Infocus', 1, 5),
-(13, 'Kamera DSLR Canon', 13, 3),
-(14, 'Tripod Kamera', 13, 5),
-(15, 'Speaker Portable', 13, 4),
-(16, 'Mikrofon Wireless', 13, 6),
-(17, 'Spidol Whiteboard', 9, 30),
-(18, 'Penggaris Besi 50 cm', 9, 20),
-(19, 'Busur dan Jangka Papan Tulis', 9, 8),
-(20, 'Bor Listrik', 2, 4),
-(21, 'Gergaji Tangan', 2, 6),
-(22, 'Tang dan Obeng Set', 2, 10),
-(23, 'Proyektor LCD', 1, 6),
-(24, 'Laptop Sekolah', 1, 10),
-(25, 'Kabel HDMI 5 Meter', 1, 12),
-(26, 'Terminal Listrik (Stop Kontak)', 1, 15),
-(27, 'Bola Basket', 14, 8),
-(28, 'Bola Voli', 14, 8),
-(29, 'Matras Senam', 14, 10),
-(30, 'Mikroskop', 15, 10),
-(31, 'Multimeter Digital', 15, 8),
-(32, 'Gelas Ukur 100 ml', 15, 20),
-(33, 'Sapu Lantai', 16, 10),
-(34, 'Alat Pel', 16, 10);
+(1, 'Lenovo Legion Pro I7', 1, 54),
+(3, 'SKop Skop', 1, 12),
+(4, 'McLaren P1', 6, 22),
+(5, 'Nuklir', 7, 33),
+(6, 'bazooka', 7, 42),
+(7, 'Granat asap', 7, 144),
+(8, 'Artileri', 7, 170),
+(9, 'Microwave', 8, 55),
+(10, 'Pisau Dapur', 8, 122),
+(11, 'Snowman Permanent Marker G-12', 9, 11);
 
 -- --------------------------------------------------------
 
@@ -83,11 +69,10 @@ CREATE TABLE `kategori` (
 INSERT INTO `kategori` (`id`, `nama`, `deskripsi`) VALUES
 (1, 'Elektronik', 'elektronik'),
 (2, 'Pertukangan', 'pertukangan'),
-(9, 'Alat tulis', '-'),
-(13, 'Audio & Dokumentasi', '-'),
-(14, 'Olahraga', 'Perlengkapan olahraga dan pendidikan jasmani'),
-(15, 'Laboratorium', 'Peralatan praktikum IPA dan komputer'),
-(16, 'Kebersihan', 'Perlengkapan kebersihan dan perawatan kelas');
+(6, 'Kendaraan', 'Kendaraan Berpergian'),
+(7, 'Senjata', 'Senjata militer'),
+(8, 'Dapur', 'Memasak'),
+(9, 'Alat tulis', '-');
 
 -- --------------------------------------------------------
 
@@ -162,12 +147,11 @@ INSERT INTO `log_aktifitas` (`id`, `user_id`, `aksi`, `waktu`) VALUES
 (53, 6, 'Status berubah: pending -> disetujui', '2026-10-05 03:19:13'),
 (54, 6, 'Status berubah: disetujui -> menunggu_konfirmasi', '2026-10-05 03:21:34'),
 (55, 6, 'Status berubah: disetujui -> menunggu_konfirmasi', '2026-10-05 03:21:38'),
-(56, 5, 'Mengonfirmasi penerimaan alat \'Lenovo Legion Pro I7\' dari Kim Jong Un, denda: Rp 20.000', '2026-10-18 15:54:42'),
-(57, 5, 'Mengonfirmasi penerimaan alat \'Snowman Permanent Marker G-12\' dari Kim Jong Un', '2026-10-18 15:58:52'),
-(58, 5, 'Mengonfirmasi penerimaan alat \'Nuklir\' dari aha', '2026-10-19 01:56:00'),
-(59, 5, 'Mengonfirmasi penerimaan alat \'Artileri\' dari Kim Jong Un, denda: Rp 55.000', '2026-10-31 03:45:08'),
-(60, 5, 'Mengonfirmasi penerimaan alat \'Artileri\' dari Kim Jong Un, denda: Rp 45.000', '2026-10-31 03:45:10'),
-(61, 5, 'Mengonfirmasi penerimaan alat \'Infocus\' dari Kim Jong Un', '2026-11-09 10:47:26');
+(56, 6, 'Ajukan peminjaman', '2026-10-19 01:01:45'),
+(57, 6, 'Ajukan peminjaman', '2026-10-19 02:39:27'),
+(58, 6, 'Status berubah: pending -> disetujui', '2026-10-19 02:40:07'),
+(59, 6, 'Status berubah: pending -> disetujui', '2026-10-19 02:40:09'),
+(60, 6, 'Status berubah: disetujui -> menunggu_konfirmasi', '2026-10-19 02:41:27');
 
 -- --------------------------------------------------------
 
@@ -191,7 +175,43 @@ CREATE TABLE `peminjaman` (
 --
 
 INSERT INTO `peminjaman` (`id`, `peminjam_id`, `alat_id`, `tgl_pinjam`, `tgl_jatuh_tempo`, `tgl_ajukan_kembali`, `status`, `denda`) VALUES
-(21, 6, 12, '2026-11-09', '2026-12-04', '2026-11-09', 'selesai', '0.00');
+(2, 4, 1, '2026-09-16', '2026-10-07', NULL, 'selesai', 0.00),
+(3, 4, 1, '2026-09-16', '2026-09-17', NULL, 'selesai', 0.00),
+(4, 4, 3, '2026-09-17', '2026-09-25', NULL, 'ditolak', 0.00),
+(5, 4, 3, '2026-09-17', '2026-09-18', NULL, 'selesai', 5000.00),
+(6, 4, 1, '2026-09-21', '2026-09-22', NULL, 'selesai', 15000.00),
+(7, 6, 1, '2026-09-21', '2026-09-22', NULL, 'selesai', 0.00),
+(8, 6, 5, '2026-09-22', '2026-10-01', NULL, 'selesai', 0.00),
+(9, 6, 1, '2026-09-22', '2026-09-22', NULL, 'selesai', 5000.00),
+(10, 6, 8, '2026-09-23', '2026-09-23', NULL, 'selesai', 10000.00),
+(11, 6, 5, '2026-09-23', '2026-09-24', NULL, 'selesai', 5000.00),
+(12, 6, 9, '2026-09-25', '2026-09-26', NULL, 'selesai', 0.00),
+(13, 4, 1, '2026-09-25', '2026-09-26', NULL, 'selesai', 0.00),
+(14, 6, 11, '2026-09-30', '2026-10-01', '2026-09-30', 'selesai', 0.00),
+(15, 6, 1, '2026-09-30', '2026-10-01', '2026-10-05', 'menunggu_konfirmasi', 0.00),
+(16, 6, 11, '2026-10-05', '2026-10-06', '2026-10-05', 'menunggu_konfirmasi', 0.00),
+(17, 6, 6, '2026-10-19', '2026-10-20', NULL, 'disetujui', 0.00),
+(18, 6, 1, '2026-10-19', '2026-10-20', '2026-10-19', 'menunggu_konfirmasi', 0.00);
+
+--
+-- Trigger `peminjaman`
+--
+DELIMITER $$
+CREATE TRIGGER `tr_log_peminjaman` AFTER INSERT ON `peminjaman` FOR EACH ROW BEGIN
+    INSERT INTO log_aktifitas (user_id, aksi, waktu)
+    VALUES (NEW.peminjam_id, 'Ajukan peminjaman', NOW());
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `tr_log_update` AFTER UPDATE ON `peminjaman` FOR EACH ROW BEGIN
+    IF OLD.status != NEW.status THEN
+        INSERT INTO log_aktifitas (user_id, aksi, waktu)
+        VALUES (NEW.peminjam_id, CONCAT('Status berubah: ', OLD.status, ' -> ', NEW.status), NOW());
+    END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -211,7 +231,32 @@ CREATE TABLE `pengembalian` (
 --
 
 INSERT INTO `pengembalian` (`id`, `peminjaman_id`, `tgl_kembali`, `denda`) VALUES
-(18, 21, '2026-11-09', '0.00');
+(1, 3, '2026-09-16', 0.00),
+(2, 2, '2026-09-16', 0.00),
+(3, 5, '2026-09-19', 5000.00),
+(4, 7, '2026-09-21', 0.00),
+(5, 8, '2026-09-22', 0.00),
+(6, 9, '2026-09-23', 5000.00),
+(7, 11, '2026-09-25', 5000.00),
+(8, 12, '2026-09-25', 0.00),
+(9, 10, '2026-09-25', 10000.00),
+(10, 6, '2026-09-25', 15000.00),
+(11, 13, '2026-09-25', 0.00),
+(12, 14, '2026-09-30', 0.00);
+
+--
+-- Trigger `pengembalian`
+--
+DELIMITER $$
+CREATE TRIGGER `tr_log_pengembalian` AFTER INSERT ON `pengembalian` FOR EACH ROW BEGIN
+    DECLARE id_peminjam INT;
+    SELECT peminjam_id INTO id_peminjam FROM peminjaman WHERE id = NEW.peminjaman_id;
+    
+    INSERT INTO log_aktifitas (user_id, aksi, waktu)
+    VALUES (id_peminjam, CONCAT('Kembalikan alat, denda: ', NEW.denda), NOW());
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -231,14 +276,11 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `role`) VALUES
-(3, 'admin', '$2y$12$GTXPZ67xzr1dmzcqCyvwZenyZD6BVg9zlC0grlTCFli2qZ.aYjIWy', 'admin'),
+(3, 'admin', '$2y$10$QqcKSx3DfobW8E55urJ8aeYGUpCWZdAUujPsHCN44.8xdtAw/Cjvi', 'admin'),
 (4, 'Pemuda PP', '$2y$10$KaBGP5cpsuhNce4Td67nnOkzpbx.7Ttl0uaDZt/GJ3FJCxKWaqXPm', 'peminjam'),
-(5, 'petugas', '$2y$12$uEOCGKh/niU4OcBRlapqGeU1102/oQuX8cTeT70CKCpWVzkxB1rRe', 'petugas'),
+(5, 'petugas', '$2y$10$mEAZQ.vxHRQM3xPsWzWgBOOj2.I8CSrorCZKRw1qY9pm0z0Dbxh3y', 'petugas'),
 (6, 'Kim Jong Un', '$2y$10$j.RH9o7c/OKl5jtRmEB.4utTQjRVJs1O9CFb2Bpv4/5mqWarq2IbW', 'peminjam'),
-(8, 'Abdul', '$2y$10$yGT8xRqD8GSfu5j8WQTxo.e0jybfmPDKST0b.86T1YUintOLp/QZq', 'peminjam'),
-(9, 'Ellen raijn', '$2y$12$uV7HhKazouFibn.r51uBlOHqoVCD76YnPu.FN.WL5zEizO645eOay', 'peminjam'),
-(10, 'aha', '$2y$12$IKeU1aOQZr/o2Em5VQbTwOlM17oVdNgTpgIgpHsTsNKBUsqcUX3nC', 'peminjam'),
-(11, 'Hazel', '$2y$12$4hjN008G8agyvRdaEzBCFOo6Oymid9MWeOsO.1Cmh.UtXQHQLjuRW', 'peminjam');
+(8, 'Abdul', '$2y$10$yGT8xRqD8GSfu5j8WQTxo.e0jybfmPDKST0b.86T1YUintOLp/QZq', 'peminjam');
 
 --
 -- Indexes for dumped tables
@@ -293,37 +335,37 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT untuk tabel `alat`
 --
 ALTER TABLE `alat`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT untuk tabel `kategori`
 --
 ALTER TABLE `kategori`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT untuk tabel `log_aktifitas`
 --
 ALTER TABLE `log_aktifitas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- AUTO_INCREMENT untuk tabel `peminjaman`
 --
 ALTER TABLE `peminjaman`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT untuk tabel `pengembalian`
 --
 ALTER TABLE `pengembalian`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)

@@ -12,6 +12,11 @@ if($_SESSION['role'] == 'petugas') {
     header('location: index.php');
     exit;
 }
+// peminjam mengajukan lewat tombol Pinjam di Daftar alat
+if($_SESSION['role'] == 'peminjam') {
+    header('location: ../alat/index.php');
+    exit;
+}
 include '../config/connection.php';
 // role & id user yang login
 $role = $_SESSION['role'];
@@ -30,7 +35,7 @@ $hari_ini = date('Y-m-d');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $role == 'admin' ? 'Tambah peminjaman' : 'Ajukan peminjaman' ?> | Peminjaman Alat</title>
-    <link rel="stylesheet" href="../assets/css/tampil.css">
+    <link rel="stylesheet" href="../assets/css/tampil.css?v=2">
 </head>
 <body>
 <!-- topbar -->
@@ -47,8 +52,13 @@ $hari_ini = date('Y-m-d');
         <h1><?= $role == 'admin' ? 'Tambah peminjaman' : 'Ajukan peminjaman' ?></h1>
     </div>
 
+    <?php if(isset($_SESSION['error'])): ?>
+        <p class="notice notice-error" role="alert"><?= htmlspecialchars($_SESSION['error'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['error']); ?></p>
+    <?php endif; ?>
+
     <!-- submit ke proses_tambah.php -->
     <form action="proses_tambah.php" method="POST">
+        <input type="hidden" name="csrf" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
 
         <?php if($role == 'admin'): ?>
             <!-- admin boleh pilih peminjam -->
@@ -90,10 +100,21 @@ $hari_ini = date('Y-m-d');
 </main>
 
 <script>
-// jatuh tempo tidak boleh sebelum tanggal pinjam
-document.getElementById('tgl_pinjam').addEventListener('change', function() {
-    document.getElementById('tgl_jatuh_tempo').min = this.value;
-});
+// batas lama pinjam (harus sama dengan $MAX_HARI di proses_tambah.php)
+var MAX_HARI = 7;
+
+// jatuh tempo: minimal tanggal pinjam, maksimal tanggal pinjam + MAX_HARI
+function aturBatas() {
+    var pinjam = document.getElementById('tgl_pinjam').value;
+    if (!pinjam) return;
+    var tempo = document.getElementById('tgl_jatuh_tempo');
+    tempo.min = pinjam;
+    var d = new Date(pinjam);
+    d.setUTCDate(d.getUTCDate() + MAX_HARI);
+    tempo.max = d.toISOString().slice(0, 10);
+}
+document.getElementById('tgl_pinjam').addEventListener('change', aturBatas);
+aturBatas();
 </script>
 
 </body>

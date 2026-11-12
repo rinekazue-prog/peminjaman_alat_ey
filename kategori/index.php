@@ -6,6 +6,19 @@ if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     header('location: ../login.php'); exit;
 }
 include '../config/connection.php';
+
+// pencarian (nama / deskripsi kategori)
+$q = trim($_GET['q'] ?? '');
+$sql = "SELECT * FROM kategori";
+$tipe = ''; $params = [];
+if($q !== '') {
+    $sql .= " WHERE nama LIKE ? OR deskripsi LIKE ?";
+    $like = '%' . $q . '%';
+    $tipe = 'ss';
+    $params = [$like, $like];
+}
+$sql .= " ORDER BY id DESC";
+[$data, $page, $pages, $total, $offset] = paginate($conn, $sql, $tipe, $params);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -13,7 +26,7 @@ include '../config/connection.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data kategori | Peminjaman Alat</title>
-    <link rel="stylesheet" href="../assets/css/tampil.css">
+    <link rel="stylesheet" href="../assets/css/tampil.css?v=2">
 </head>
 <body>
 <!-- topbar -->
@@ -33,6 +46,13 @@ include '../config/connection.php';
         <a href="tambah.php" class="btn btn-primary">Tambah kategori</a>
     </div>
 
+    <!-- form kosong tersembunyi: input & tombol tersambung lewat atribut form="cari" -->
+    <form method="get" id="cari" hidden></form>
+    <div class="toolbar">
+        <input type="text" name="q" form="cari" value="<?= e($q) ?>" placeholder="Cari nama atau deskripsi kategori..." aria-label="Cari">
+        <button type="submit" form="cari" class="btn btn-primary">Cari</button>
+    </div>
+
     <table>
         <thead>
             <tr>
@@ -44,14 +64,13 @@ include '../config/connection.php';
         </thead>
         <tbody>
             <?php
-            $no = 1;
-            $data = $conn->query("SELECT * FROM kategori ORDER BY id DESC");
+            $no = $offset + 1;
             while($r = $data->fetch_assoc()):
             ?>
             <tr>
                 <td><?= $no++ ?></td>
-                <td><?= $r['nama'] ?></td>
-                <td><?= $r['deskripsi'] ?></td>
+                <td><?= e($r['nama']) ?></td>
+                <td><?= e($r['deskripsi']) ?></td>
                 <!-- confirm() supaya tidak kepencet hapus -->
                 <td class="aksi">
                     <a href="edit.php?id=<?= $r['id'] ?>">Edit</a>
@@ -60,11 +79,13 @@ include '../config/connection.php';
             </tr>
             <?php endwhile; ?>
             <!-- belum ada data -->
-            <?php if($no == 1): ?>
-            <tr><td colspan="4" class="kosong">Belum ada kategori.</td></tr>
+            <?php if($total == 0): ?>
+            <tr><td colspan="4" class="kosong"><?= $q !== '' ? 'Kategori yang dicari tidak ditemukan.' : 'Belum ada kategori.' ?></td></tr>
             <?php endif; ?>
         </tbody>
     </table>
+
+    <?php tampil_halaman($page, $pages); ?>
 </main>
 </body>
 </html>

@@ -9,8 +9,16 @@ if(!isset($_SESSION['role']) || $_SESSION['role'] != 'peminjam') {
 }
 include '../config/connection.php';
 
-// id dari URL, di-cast int biar aman
-$id = (int) ($_GET['id'] ?? 0);
+// bukan POST atau token salah = ditolak (cegah aksi lewat link / CSRF)
+if($_SERVER['REQUEST_METHOD'] !== 'POST'
+   || !hash_equals($_SESSION['csrf'] ?? '', $_POST['csrf'] ?? '')) {
+    $_SESSION['error'] = 'Permintaan tidak valid, silakan ulangi.';
+    header('location: ../alat/index.php');
+    exit;
+}
+
+// id dari form, di-cast int biar aman
+$id = (int) ($_POST['id'] ?? 0);
 // id user yang login
 $user_id = (int) $_SESSION['id'];
 // hari ini = tanggal peminjam mengajukan pengembalian
@@ -24,7 +32,9 @@ $pjm = $stmt->get_result()->fetch_assoc();
 
 // data tidak valid atau sudah diproses, stop
 if(!$pjm) {
-    die("Data peminjaman tidak ditemukan atau sudah diproses!");
+    $_SESSION['error'] = 'Data peminjaman tidak ditemukan atau sudah diproses.';
+    header('location: ../alat/index.php');
+    exit;
 }
 
 // tandai pengajuan pengembalian. alat BELUM dianggap kembali
@@ -33,9 +43,15 @@ $stmt = $conn->prepare("UPDATE peminjaman SET status = 'menunggu_konfirmasi', tg
 $stmt->bind_param('si', $tgl_ajukan, $id);
 $stmt->execute();
 
-// perubahan status ini otomatis masuk log_aktifitas lewat trigger tr_log_update
+// catat di log (hosting tanpa trigger, jadi ditulis langsung dari sini)
+$ns = $conn->prepare("SELECT nama FROM alat WHERE id = ?");
+$ns->bind_param('i', $pjm['alat_id']);
+$ns->execute();
+$nama_alat = $ns->get_result()->fetch_assoc()['nama'] ?? '';
+catat_log($conn, $user_id, "Mengajukan pengembalian alat '{$nama_alat}'");
 
-// balik ke halaman kembalikan + notif sukses
-header('location: kembalikan.php?status=success');
+// balik ke Daftar alat + notif sukses
+$_SESSION['success'] = 'Pengembalian sudah diajukan. Serahkan alatnya ke petugas, status berubah setelah petugas mengonfirmasi alat sudah diterima.';
+header('location: ../alat/index.php');
 exit;
 ?>

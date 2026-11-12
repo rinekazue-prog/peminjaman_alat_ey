@@ -541,3 +541,52 @@ td.kosong {
   table, form, .menu { box-shadow: none; }
   th, td { border-color: #999; }
 }
+
+.toolbar {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 22px;
+}
+.toolbar input[type="text"] { flex: 1 1 auto; min-width: 0; width: auto; }
+.toolbar .btn { white-space: nowrap; }
+
+@media (max-width: 640px) {
+  .toolbar { flex-direction: row; align-items: center; }
+}
+
+/* ---------- Form pinjam di dalam daftar alat ---------- */
+.form-row { display: none; }
+.form-row.terbuka { display: table-row; }
+.form-row td { background: var(--tan); padding: 16px; }
+.form-row form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: none;
+}
+.form-row .kolom { flex: 1 1 180px; }
+.form-row label { margin: 0 0 4px; }
+.info-status { font-weight: 700; color: var(--muted); }
+
+/* ---------- Halaman pinjam & kembalikan ---------- */
+.detail {
+  max-width: 420px;
+  margin: 0 0 20px;
+  padding: 18px 22px;
+  background: var(--tan);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.detail div { display: flex; justify-content: space-between; gap: 16px; padding: 6px 0; }
+.detail dt { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; }
+.detail dd { margin: 0; font-weight: 600; text-align: right; }
+.aksi .btn + .btn { margin-left: 6px; }

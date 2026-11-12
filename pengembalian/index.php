@@ -7,6 +7,26 @@ if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     exit;
 }
 include '../config/connection.php';
+
+// 10 data per halaman
+// kata kunci pencarian (peminjam / alat)
+$q = trim($_GET['q'] ?? '');
+
+// pengembalian + peminjam + alat (JOIN 3 tabel)
+$sql = "SELECT pg.*, u.username, a.nama AS alat
+        FROM pengembalian pg
+        JOIN peminjaman p ON pg.peminjaman_id = p.id
+        JOIN users u ON p.peminjam_id = u.id
+        JOIN alat a ON p.alat_id = a.id";
+$tipe = ''; $params = [];
+if($q !== '') {
+    $sql .= " WHERE u.username LIKE ? OR a.nama LIKE ?";
+    $like = '%' . $q . '%';
+    $tipe = 'ss';
+    $params = [$like, $like];
+}
+$sql .= " ORDER BY pg.id DESC";
+[$data, $page, $pages, $total, $offset] = paginate($conn, $sql, $tipe, $params);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -14,7 +34,7 @@ include '../config/connection.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data pengembalian | Peminjaman Alat</title>
-    <link rel="stylesheet" href="../assets/css/tampil.css">
+    <link rel="stylesheet" href="../assets/css/tampil.css?v=2">
 </head>
 <body>
 <!-- topbar -->
@@ -34,11 +54,20 @@ include '../config/connection.php';
         <a href="tambah.php" class="btn btn-primary">Catat pengembalian</a>
     </div>
 
+    <!-- form kosong tersembunyi: input & tombol tersambung lewat atribut form="cari" -->
+    <form method="get" id="cari" hidden></form>
+    <div class="toolbar">
+        <input type="text" name="q" form="cari" value="<?= e($q) ?>" placeholder="Cari nama peminjam atau alat..." aria-label="Cari">
+        <button type="submit" form="cari" class="btn btn-primary">Cari</button>
+    </div>
+
     <table>
         <thead>
             <tr>
                 <th>No</th>
                 <th>ID peminjaman</th>
+                <th>Peminjam</th>
+                <th>Alat</th>
                 <th>Tgl kembali</th>
                 <th class="num">Denda</th>
                 <th class="aksi">Aksi</th>
@@ -46,13 +75,14 @@ include '../config/connection.php';
         </thead>
         <tbody>
             <?php
-            $no = 1;
-            $data = $conn->query("SELECT * FROM pengembalian ORDER BY id DESC");
+            $no = $offset + 1;
             while($r = $data->fetch_assoc()):
             ?>
             <tr>
                 <td><?= $no++ ?></td>
                 <td><?= $r['peminjaman_id'] ?></td>
+                <td><?= e($r['username']) ?></td>
+                <td><?= e($r['alat']) ?></td>
                 <!-- tanggal tampil dd/mm/yyyy -->
                 <td><?= date('d/m/Y', strtotime($r['tgl_kembali'])) ?></td>
                 <!-- format rupiah, strip kalau tidak ada denda -->
@@ -65,11 +95,13 @@ include '../config/connection.php';
             </tr>
             <?php endwhile; ?>
             <!-- belum ada data -->
-            <?php if($no == 1): ?>
-            <tr><td colspan="5" class="kosong">Belum ada pengembalian.</td></tr>
+            <?php if($total == 0): ?>
+            <tr><td colspan="7" class="kosong"><?= $q !== '' ? 'Pengembalian yang dicari tidak ditemukan.' : 'Belum ada pengembalian.' ?></td></tr>
             <?php endif; ?>
         </tbody>
     </table>
+
+    <?php tampil_halaman($page, $pages); ?>
 </main>
 </body>
 </html>

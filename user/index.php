@@ -7,6 +7,18 @@ if(!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     exit;
 }
 include '../config/connection.php';
+
+// pencarian (?q=...) cari username
+$q = trim($_GET['q'] ?? '');
+$sql = "SELECT * FROM users";
+$tipe = ''; $params = [];
+if($q !== '') {
+    $sql .= " WHERE username LIKE ?";
+    $tipe = 's';
+    $params = ['%' . $q . '%'];
+}
+$sql .= " ORDER BY id DESC";
+[$data, $page, $pages, $total, $offset] = paginate($conn, $sql, $tipe, $params);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -14,7 +26,7 @@ include '../config/connection.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data user | Peminjaman Alat</title>
-    <link rel="stylesheet" href="../assets/css/tampil.css">
+    <link rel="stylesheet" href="../assets/css/tampil.css?v=2">
 </head>
 <body>
 <!-- topbar -->
@@ -39,6 +51,13 @@ include '../config/connection.php';
         <p class="notice notice-error" role="alert"><?= $_SESSION['error']; unset($_SESSION['error']); ?></p>
     <?php endif; ?>
 
+    <!-- form kosong tersembunyi: input & tombol tersambung lewat atribut form="cari" -->
+    <form method="get" id="cari" hidden></form>
+    <div class="toolbar">
+        <input type="text" name="q" form="cari" value="<?= e($q) ?>" placeholder="Cari username..." aria-label="Cari">
+        <button type="submit" form="cari" class="btn btn-primary">Cari</button>
+    </div>
+
     <table>
         <thead>
             <tr>
@@ -50,13 +69,12 @@ include '../config/connection.php';
         </thead>
         <tbody>
             <?php
-            $no = 1;
-            $data = $conn->query("SELECT * FROM users ORDER BY id DESC");
+            $no = $offset + 1;
             while($r = $data->fetch_assoc()):
             ?>
             <tr>
                 <td><?= $no++ ?></td>
-                <td><?= $r['username'] ?></td>
+                <td><?= e($r['username']) ?></td>
                 <td><?= ucfirst($r['role']) ?></td>
                 <!-- confirm() supaya tidak kepencet hapus -->
                 <td class="aksi">
@@ -66,11 +84,13 @@ include '../config/connection.php';
             </tr>
             <?php endwhile; ?>
             <!-- belum ada data -->
-            <?php if($no == 1): ?>
-            <tr><td colspan="4" class="kosong">Belum ada user.</td></tr>
+            <?php if($total == 0): ?>
+            <tr><td colspan="4" class="kosong"><?= $q !== '' ? 'User yang dicari tidak ditemukan.' : 'Belum ada user.' ?></td></tr>
             <?php endif; ?>
         </tbody>
     </table>
+
+    <?php tampil_halaman($page, $pages); ?>
 </main>
 </body>
 </html>

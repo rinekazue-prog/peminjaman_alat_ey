@@ -7,6 +7,9 @@ if(!isset($_SESSION['role']) || $_SESSION['role'] != 'petugas') {
     exit;
 }
 include '../config/connection.php';
+
+// kata kunci pencarian (peminjam / alat / status). laporan tidak dipaginasi supaya cetakannya lengkap
+$q = trim($_GET['q'] ?? '');
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -14,7 +17,7 @@ include '../config/connection.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan peminjaman | Peminjaman Alat</title>
-    <link rel="stylesheet" href="../assets/css/tampil.css">
+    <link rel="stylesheet" href="../assets/css/tampil.css?v=2">
 </head>
 <body>
 <!-- topbar -->
@@ -35,6 +38,13 @@ include '../config/connection.php';
         <button onclick="window.print()" class="btn btn-primary no-print">Cetak laporan</button>
     </div>
 
+    <!-- form kosong tersembunyi: input & tombol tersambung lewat atribut form="cari" -->
+    <form method="get" id="cari" hidden></form>
+    <div class="toolbar no-print">
+        <input type="text" name="q" form="cari" value="<?= e($q) ?>" placeholder="Cari nama peminjam, alat, atau status..." aria-label="Cari">
+        <button type="submit" form="cari" class="btn btn-primary">Cari</button>
+    </div>
+
     <table>
         <thead>
             <tr>
@@ -51,17 +61,27 @@ include '../config/connection.php';
             <?php
             $no = 1;
             // semua peminjaman, urut tgl pinjam terbaru
-            $data = $conn->query("SELECT p.*, u.username, a.nama AS alat 
-                                  FROM peminjaman p 
-                                  JOIN users u ON p.peminjam_id = u.id 
-                                  JOIN alat a ON p.alat_id = a.id 
-                                  ORDER BY p.tgl_pinjam DESC");
+            $sql = "SELECT p.*, u.username, a.nama AS alat
+                    FROM peminjaman p
+                    JOIN users u ON p.peminjam_id = u.id
+                    JOIN alat a ON p.alat_id = a.id";
+            if($q !== '') {
+                $sql .= " WHERE u.username LIKE ? OR a.nama LIKE ? OR p.status LIKE ?";
+            }
+            $sql .= " ORDER BY p.tgl_pinjam DESC";
+            $stmt = $conn->prepare($sql);
+            if($q !== '') {
+                $like = '%' . $q . '%';
+                $stmt->bind_param('sss', $like, $like, $like);
+            }
+            $stmt->execute();
+            $data = $stmt->get_result();
             while($r = $data->fetch_assoc()):
             ?>
             <tr>
                 <td><?= $no++ ?></td>
-                <td><?= $r['username'] ?></td>
-                <td><?= $r['alat'] ?></td>
+                <td><?= e($r['username']) ?></td>
+                <td><?= e($r['alat']) ?></td>
                 <!-- tanggal tampil dd/mm/yyyy -->
                 <td><?= date('d/m/Y', strtotime($r['tgl_pinjam'])) ?></td>
                 <td><?= date('d/m/Y', strtotime($r['tgl_jatuh_tempo'])) ?></td>
@@ -73,7 +93,7 @@ include '../config/connection.php';
             <?php endwhile; ?>
             <!-- belum ada data -->
             <?php if($no == 1): ?>
-            <tr><td colspan="7" class="kosong">Belum ada data peminjaman.</td></tr>
+            <tr><td colspan="7" class="kosong"><?= $q !== '' ? 'Data yang dicari tidak ditemukan.' : 'Belum ada data peminjaman.' ?></td></tr>
             <?php endif; ?>
         </tbody>
     </table>

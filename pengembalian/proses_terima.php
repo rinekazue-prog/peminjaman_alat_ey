@@ -62,9 +62,7 @@ $stmt->execute();
 
 // catat di log siapa petugas yang menerima
 $pesan = "Mengonfirmasi penerimaan alat '{$pjm['alat']}' dari {$pjm['username']}" . ($denda > 0 ? ", denda: Rp " . number_format($denda, 0, ',', '.') : "");
-$stmt = $conn->prepare("INSERT INTO log_aktifitas (user_id, aksi) VALUES (?, ?)");
-$stmt->bind_param('is', $petugas_id, $pesan);
-$stmt->execute();
+catat_log($conn, $petugas_id, $pesan);
 
 // balik ke daftar terima + notif sukses
 header('location: terima.php?status=success');

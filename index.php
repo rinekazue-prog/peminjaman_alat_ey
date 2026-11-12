@@ -25,20 +25,20 @@ $nama_role = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beranda | Peminjaman Alat</title>
-    <link rel="stylesheet" href="assets/css/tampil.css">
+    <link rel="stylesheet" href="assets/css/tampil.css?v=2">
 </head>
 <body>
 <!-- topbar -->
 <header class="topbar">
     <a href="index.php" class="brand">Peminjaman Alat</a>
     <div class="user">
-        <span><?= $_SESSION['username'] ?></span>
+        <span><?= htmlspecialchars($_SESSION['username'], ENT_QUOTES, 'UTF-8') ?></span>
         <a href="logout.php">Keluar</a>
     </div>
 </header>
 
 <main class="page">
-    <h1 class="greeting">Aku, <?= $_SESSION['username'] ?></h1>
+    <h1 class="greeting">Selamat Datang, <?= htmlspecialchars($_SESSION['username'], ENT_QUOTES, 'UTF-8') ?></h1>
     <p class="sub">Masuk sebagai <?= $nama_role[$role] ?? 'Peminjam' ?></p>
 
     <!-- isi menu ditentukan role -->
@@ -96,15 +96,13 @@ $nama_role = [
         <section class="menu">
             <h2>Alat</h2>
             <ul>
-                <li><a href="alat/index.php">Daftar alat</a></li>
+                <li><a href="alat/index.php">Daftar alat (pinjam dan kembalikan)</a></li>
             </ul>
         </section>
 
         <section class="menu">
-            <h2>Peminjaman</h2>
+            <h2>Riwayat</h2>
             <ul>
-                <li><a href="peminjaman/tambah.php">Ajukan peminjaman</a></li>
-                <li><a href="pengembalian/kembalikan.php">Kembalikan alat</a></li>
                 <li><a href="riwayat.php">Riwayat peminjaman</a></li>
             </ul>
         </section>

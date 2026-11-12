@@ -20,6 +20,36 @@ $label_status = [
     'selesai'              => 'Selesai',
     'ditolak'              => 'Ditolak',
 ];
+
+// ---------- pencarian (?q=...) cari nama peminjam atau alat ----------
+$q = trim($_GET['q'] ?? '');
+
+$where  = [];
+$tipe   = '';
+$params = [];
+
+// peminjam cuma boleh lihat miliknya sendiri
+if($role == 'peminjam') {
+    $where[]  = "p.peminjam_id = ?";
+    $tipe    .= 'i';
+    $params[] = $user_id;
+}
+if($q !== '') {
+    $where[]  = "(u.username LIKE ? OR a.nama LIKE ?)";
+    $like     = '%' . $q . '%';
+    $tipe    .= 'ss';
+    $params[] = $like;
+    $params[] = $like;
+}
+
+$sql = "SELECT p.*, u.username, a.nama AS alat
+        FROM peminjaman p
+        JOIN users u ON p.peminjam_id = u.id
+        JOIN alat a ON p.alat_id = a.id"
+     . ($where ? " WHERE " . implode(' AND ', $where) : "")
+     . " ORDER BY p.id DESC";
+
+[$data, $page, $pages, $total, $offset] = paginate($conn, $sql, $tipe, $params);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -27,14 +57,14 @@ $label_status = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data peminjaman | Peminjaman Alat</title>
-    <link rel="stylesheet" href="../assets/css/tampil.css">
+    <link rel="stylesheet" href="../assets/css/tampil.css?v=2">
 </head>
 <body>
 <!-- topbar -->
 <header class="topbar">
     <a href="../index.php" class="brand">Peminjaman Alat</a>
     <div class="user">
-        <span><?= $_SESSION['username'] ?></span>
+        <span><?= e($_SESSION['username']) ?></span>
         <a href="../logout.php">Keluar</a>
     </div>
 </header>
@@ -57,9 +87,21 @@ $label_status = [
 
         <!-- flash error: tampil sekali, langsung di-unset -->
         <?php if(isset($_SESSION['error'])): ?>
-        <p class="notice notice-error" role="alert"><?= $_SESSION['error']; unset($_SESSION['error']); ?></p>
+        <p class="notice notice-error" role="alert"><?= e($_SESSION['error']); unset($_SESSION['error']); ?></p>
     <?php endif; ?>
     
+    <!-- flash sukses -->
+    <?php if(isset($_SESSION['success'])): ?>
+        <p class="notice notice-ok" role="status"><?= e($_SESSION['success']); unset($_SESSION['success']); ?></p>
+    <?php endif; ?>
+
+    <!-- form kosong tersembunyi: input & tombol tersambung lewat atribut form="cari" -->
+    <form method="get" id="cari" hidden></form>
+    <div class="toolbar">
+        <input type="text" name="q" form="cari" value="<?= e($q) ?>" placeholder="Cari peminjam atau alat..." aria-label="Cari">
+        <button type="submit" form="cari" class="btn btn-primary">Cari</button>
+    </div>
+
     <table>
         <thead>
             <tr>
@@ -77,35 +119,16 @@ $label_status = [
         </thead>
         <tbody>
             <?php
-            $no = 1;
+            $no = $offset + 1;
 
-            // data yang tampil tergantung role
-            if($role == 'admin' || $role == 'petugas') {
-                // admin & petugas: semua data
-                $data = $conn->query("SELECT p.*, u.username, a.nama AS alat 
-                                      FROM peminjaman p 
-                                      JOIN users u ON p.peminjam_id = u.id 
-                                      JOIN alat a ON p.alat_id = a.id 
-                                      ORDER BY p.id DESC");
-            } else {
-                // peminjam: difilter pakai id sendiri
-                $stmt = $conn->prepare("SELECT p.*, u.username, a.nama AS alat 
-                                        FROM peminjaman p 
-                                        JOIN users u ON p.peminjam_id = u.id 
-                                        JOIN alat a ON p.alat_id = a.id 
-                                        WHERE p.peminjam_id = ?
-                                        ORDER BY p.id DESC");
-                $stmt->bind_param('i', $user_id);
-                $stmt->execute();
-                $data = $stmt->get_result();
-            }
+            // $data sudah disiapkan di atas (sesuai role + filter)
 
             while($r = $data->fetch_assoc()):
             ?>
             <tr>
                 <td><?= $no++ ?></td>
-                <td><?= $r['username'] ?></td>
-                <td><?= $r['alat'] ?></td>
+                <td><?= e($r['username']) ?></td>
+                <td><?= e($r['alat']) ?></td>
                 <!-- tanggal tampil dd/mm/yyyy -->
                 <td><?= date('d/m/Y', strtotime($r['tgl_pinjam'])) ?></td>
                 <td><?= date('d/m/Y', strtotime($r['tgl_jatuh_tempo'])) ?></td>
@@ -123,11 +146,13 @@ $label_status = [
             </tr>
             <?php endwhile; ?>
             <!-- belum ada data -->
-            <?php if($no == 1): ?>
-            <tr><td colspan="<?= $role == 'admin' ? 8 : 7 ?>" class="kosong">Belum ada peminjaman.</td></tr>
+            <?php if($total == 0): ?>
+            <tr><td colspan="<?= $role == 'admin' ? 8 : 7 ?>" class="kosong"><?= $q !== '' ? 'Data yang dicari tidak ditemukan.' : 'Belum ada peminjaman.' ?></td></tr>
             <?php endif; ?>
         </tbody>
     </table>
+
+    <?php tampil_halaman($page, $pages); ?>
 </main>
 </body>
 </html>

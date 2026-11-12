@@ -10,12 +10,21 @@ include '../config/connection.php';
 
 // pengembalian yang sudah diajukan peminjam,
 // tapi belum dikonfirmasi petugas, urut dari yang paling lama menunggu
-$data = $conn->query("SELECT p.*, u.username, a.nama AS alat
-                       FROM peminjaman p
-                       JOIN users u ON p.peminjam_id = u.id
-                       JOIN alat a ON p.alat_id = a.id
-                       WHERE p.status = 'menunggu_konfirmasi'
-                       ORDER BY p.tgl_ajukan_kembali ASC");
+$q = trim($_GET['q'] ?? '');
+$sql = "SELECT p.*, u.username, a.nama AS alat
+        FROM peminjaman p
+        JOIN users u ON p.peminjam_id = u.id
+        JOIN alat a ON p.alat_id = a.id
+        WHERE p.status = 'menunggu_konfirmasi'";
+if($q !== '') { $sql .= " AND (u.username LIKE ? OR a.nama LIKE ?)"; }
+$sql .= " ORDER BY p.tgl_ajukan_kembali ASC";
+$tipe = ''; $params = [];
+if($q !== '') {
+    $like = '%' . $q . '%';
+    $tipe = 'ss';
+    $params = [$like, $like];
+}
+[$data, $page, $pages, $total, $offset] = paginate($conn, $sql, $tipe, $params);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -23,7 +32,7 @@ $data = $conn->query("SELECT p.*, u.username, a.nama AS alat
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terima pengembalian | Peminjaman Alat</title>
-    <link rel="stylesheet" href="../assets/css/tampil.css">
+    <link rel="stylesheet" href="../assets/css/tampil.css?v=2">
 </head>
 <body>
 <!-- topbar -->
@@ -47,6 +56,13 @@ $data = $conn->query("SELECT p.*, u.username, a.nama AS alat
         <p class="notice notice-ok" role="status">Pengembalian alat berhasil dikonfirmasi diterima dan dicatat.</p>
     <?php endif; ?>
 
+    <!-- form kosong tersembunyi: input & tombol tersambung lewat atribut form="cari" -->
+    <form method="get" id="cari" hidden></form>
+    <div class="toolbar">
+        <input type="text" name="q" form="cari" value="<?= e($q) ?>" placeholder="Cari peminjam atau alat..." aria-label="Cari">
+        <button type="submit" form="cari" class="btn btn-primary">Cari</button>
+    </div>
+
     <!-- tabel cuma tampil kalau ada data -->
     <?php if($data->num_rows > 0): ?>
         <table>
@@ -62,13 +78,13 @@ $data = $conn->query("SELECT p.*, u.username, a.nama AS alat
             </thead>
             <tbody>
                 <?php
-                $no = 1;
+                $no = $offset + 1;
                 while($r = $data->fetch_assoc()):
                 ?>
                 <tr>
                     <td><?= $no++ ?></td>
-                    <td><?= $r['username'] ?></td>
-                    <td><?= $r['alat'] ?></td>
+                    <td><?= e($r['username']) ?></td>
+                    <td><?= e($r['alat']) ?></td>
                     <!-- tanggal tampil dd/mm/yyyy -->
                     <td><?= date('d/m/Y', strtotime($r['tgl_pinjam'])) ?></td>
                     <td><?= $r['tgl_ajukan_kembali'] ? date('d/m/Y', strtotime($r['tgl_ajukan_kembali'])) : '-' ?></td>
@@ -82,9 +98,11 @@ $data = $conn->query("SELECT p.*, u.username, a.nama AS alat
                 <?php endwhile; ?>
             </tbody>
         </table>
+
+        <?php tampil_halaman($page, $pages); ?>
     <!-- belum ada data -->
     <?php else: ?>
-        <p class="empty">Tidak ada pengajuan pengembalian yang menunggu konfirmasi.</p>
+        <p class="empty"><?= $q !== '' ? 'Pengajuan yang dicari tidak ditemukan.' : 'Tidak ada pengajuan pengembalian yang menunggu konfirmasi.' ?></p>
     <?php endif; ?>
 </main>
 </body>

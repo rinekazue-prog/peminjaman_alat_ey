@@ -10,16 +10,25 @@ include 'config/connection.php';
 // id user yang login
 $user_id = (int) $_SESSION['id'];
 
+// kata kunci pencarian (nama alat / status)
+$q = trim($_GET['q'] ?? '');
+
 // semua peminjaman user ini. LEFT JOIN pengembalian supaya yang belum kembali tetap muncul
-$stmt = $conn->prepare("SELECT p.*, a.nama AS alat, pg.tgl_kembali, pg.denda AS denda_kembali
-                        FROM peminjaman p
-                        JOIN alat a ON p.alat_id = a.id
-                        LEFT JOIN pengembalian pg ON pg.peminjaman_id = p.id
-                        WHERE p.peminjam_id = ?
-                        ORDER BY p.id DESC");
-$stmt->bind_param('i', $user_id);
-$stmt->execute();
-$data = $stmt->get_result();
+$sql = "SELECT p.*, a.nama AS alat, pg.tgl_kembali, pg.denda AS denda_kembali
+        FROM peminjaman p
+        JOIN alat a ON p.alat_id = a.id
+        LEFT JOIN pengembalian pg ON pg.peminjaman_id = p.id
+        WHERE p.peminjam_id = ?";
+$tipe = 'i'; $params = [$user_id];
+if($q !== '') {
+    $sql .= " AND (a.nama LIKE ? OR p.status LIKE ?)";
+    $like = '%' . $q . '%';
+    $tipe .= 'ss';
+    $params[] = $like;
+    $params[] = $like;
+}
+$sql .= " ORDER BY p.id DESC";
+[$data, $page, $pages, $total, $offset] = paginate($conn, $sql, $tipe, $params);
 
 // label status (di db namanya pakai underscore)
 $label_status = [
@@ -36,7 +45,7 @@ $label_status = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Riwayat peminjaman | Peminjaman Alat</title>
-    <link rel="stylesheet" href="assets/css/tampil.css">
+    <link rel="stylesheet" href="assets/css/tampil.css?v=2">
 </head>
 <body>
 <!-- topbar -->
@@ -55,6 +64,13 @@ $label_status = [
         <h1>Riwayat peminjaman</h1>
     </div>
 
+    <!-- form kosong tersembunyi: input & tombol tersambung lewat atribut form="cari" -->
+    <form method="get" id="cari" hidden></form>
+    <div class="toolbar">
+        <input type="text" name="q" form="cari" value="<?= e($q) ?>" placeholder="Cari nama alat atau status..." aria-label="Cari">
+        <button type="submit" form="cari" class="btn btn-primary">Cari</button>
+    </div>
+
     <table>
         <thead>
             <tr>
@@ -69,12 +85,12 @@ $label_status = [
         </thead>
         <tbody>
             <?php
-            $no = 1;
+            $no = $offset + 1;
             while($r = $data->fetch_assoc()):
             ?>
             <tr>
                 <td><?= $no++ ?></td>
-                <td><?= $r['alat'] ?></td>
+                <td><?= e($r['alat']) ?></td>
                 <!-- tanggal tampil dd/mm/yyyy -->
                 <td><?= date('d/m/Y', strtotime($r['tgl_pinjam'])) ?></td>
                 <td><?= date('d/m/Y', strtotime($r['tgl_jatuh_tempo'])) ?></td>
@@ -86,11 +102,13 @@ $label_status = [
             </tr>
             <?php endwhile; ?>
             <!-- belum ada data -->
-            <?php if($no == 1): ?>
-            <tr><td colspan="7" class="kosong">Belum ada riwayat peminjaman.</td></tr>
+            <?php if($total == 0): ?>
+            <tr><td colspan="7" class="kosong"><?= $q !== '' ? 'Riwayat yang dicari tidak ditemukan.' : 'Belum ada riwayat peminjaman.' ?></td></tr>
             <?php endif; ?>
         </tbody>
     </table>
+
+    <?php tampil_halaman($page, $pages); ?>
 </main>
 </body>
 </html>
